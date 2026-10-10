@@ -1,15 +1,13 @@
 
-import 'dart:ui';
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const PetCareApp());
-}
+void main() => runApp(const PetCareApp());
 
-const Color ink = Color(0xFF172C28);
-const Color mint = Color(0xFFBDE8D5);
-const Color cream = Color(0xFFF5F7F2);
-const Color muted = Color(0xFF7B8983);
+const ink = Color(0xFF19372E);
+const green = Color(0xFF397D63);
+const mint = Color(0xFFDDF2E5);
+const background = Color(0xFFF6F8F4);
+const muted = Color(0xFF7A8981);
 
 class PetCareApp extends StatelessWidget {
   const PetCareApp({super.key});
@@ -21,14 +19,10 @@ class PetCareApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        scaffoldBackgroundColor: cream,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF39866C),
-          surface: cream,
-        ),
-        fontFamily: 'Roboto',
+        scaffoldBackgroundColor: background,
+        colorScheme: ColorScheme.fromSeed(seedColor: green),
       ),
-      home: const MainScreen(),
+      home: const PetCareHome(),
     );
   }
 }
@@ -39,187 +33,147 @@ class Pet {
   String emoji;
   int age;
 
-  Pet({
-    required this.name,
-    required this.breed,
-    required this.emoji,
-    required this.age,
-  });
+  Pet(this.name, this.breed, this.emoji, this.age);
 }
 
-class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+class CareTask {
+  String title;
+  String pet;
+  String time;
+  bool done;
+
+  CareTask(this.title, this.pet, this.time, {this.done = false});
+}
+
+class PetCareHome extends StatefulWidget {
+  const PetCareHome({super.key});
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  State<PetCareHome> createState() => _PetCareHomeState();
 }
 
-class _MainScreenState extends State<MainScreen> {
-  int selectedTab = 0;
+class _PetCareHomeState extends State<PetCareHome> {
+  int tab = 0;
 
-  final List<Pet> pets = [
-    Pet(name: 'Bruno', breed: 'Golden Retriever', emoji: '🐕', age: 2),
-    Pet(name: 'Milo', breed: 'Persian Cat', emoji: '🐈', age: 1),
+  final pets = <Pet>[
+    Pet('Bruno', 'Golden Retriever', '🐕', 2),
+    Pet('Milo', 'Persian Cat', '🐈', 1),
   ];
 
-  final List<Map<String, dynamic>> reminders = [
-    {
-      'title': 'Morning feeding',
-      'subtitle': 'Bruno · Today, 8:00 AM',
-      'icon': Icons.restaurant_rounded,
-      'done': false,
-    },
-    {
-      'title': 'Vaccination check',
-      'subtitle': 'Milo · Today, 4:30 PM',
-      'icon': Icons.vaccines_rounded,
-      'done': false,
-    },
-    {
-      'title': 'Evening walk',
-      'subtitle': 'Bruno · Today, 6:00 PM',
-      'icon': Icons.directions_walk_rounded,
-      'done': true,
-    },
+  final tasks = <CareTask>[
+    CareTask('Morning feeding', 'Bruno', '8:00 AM'),
+    CareTask('Vaccination check', 'Milo', '4:30 PM'),
+    CareTask('Evening walk', 'Bruno', '6:00 PM', done: true),
   ];
 
-  void showMessage(String message) {
+  void message(String text) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
+        content: Text(text),
         behavior: SnackBarBehavior.floating,
       ),
     );
   }
 
   void addPet() {
-    final nameController = TextEditingController();
-    final breedController = TextEditingController();
-    final ageController = TextEditingController(text: '1');
+    final name = TextEditingController();
+    final breed = TextEditingController();
+    final age = TextEditingController(text: '1');
     String emoji = '🐕';
 
     showDialog(
       context: context,
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (context, refreshDialog) {
-            return AlertDialog(
-              backgroundColor: cream,
-              title: const Text('Add your pet'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Wrap(
-                      spacing: 12,
-                      children: ['🐕', '🐈', '🐇', '🐦', '🐹']
-                          .map(
-                            (item) => GestureDetector(
-                              onTap: () => refreshDialog(
-                                () => emoji = item,
-                              ),
-                              child: Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: emoji == item
-                                      ? mint
-                                      : Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                  item,
-                                  style: const TextStyle(fontSize: 26),
-                                ),
-                              ),
-                            ),
-                          )
-                          .toList(),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Pet name',
-                      ),
-                    ),
-                    TextField(
-                      controller: breedController,
-                      decoration: const InputDecoration(
-                        labelText: 'Breed',
-                      ),
-                    ),
-                    TextField(
-                      controller: ageController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'Age in years',
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('Cancel'),
-                ),
-                FilledButton(
-                  onPressed: () {
-                    final name = nameController.text.trim();
-                    if (name.isEmpty) return;
-
-                    setState(() {
-                      pets.add(
-                        Pet(
-                          name: name,
-                          breed: breedController.text.trim().isEmpty
-                              ? 'Pet'
-                              : breedController.text.trim(),
-                          emoji: emoji,
-                          age: int.tryParse(ageController.text) ?? 1,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, refresh) => AlertDialog(
+          title: const Text('Add your pet'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Wrap(
+                  spacing: 12,
+                  children: ['🐕', '🐈', '🐇', '🐦', '🐹'].map((e) {
+                    return InkWell(
+                      onTap: () => refresh(() => emoji = e),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: emoji == e ? mint : background,
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                      );
-                    });
-
-                    Navigator.pop(dialogContext);
-                    showMessage('$name added successfully');
-                  },
-                  child: const Text('Add pet'),
+                        child: Text(e, style: const TextStyle(fontSize: 27)),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                TextField(
+                  controller: name,
+                  decoration: const InputDecoration(labelText: 'Pet name'),
+                ),
+                TextField(
+                  controller: breed,
+                  decoration: const InputDecoration(labelText: 'Breed'),
+                ),
+                TextField(
+                  controller: age,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Age in years'),
                 ),
               ],
-            );
-          },
-        );
-      },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                if (name.text.trim().isEmpty) return;
+                setState(() {
+                  pets.add(
+                    Pet(
+                      name.text.trim(),
+                      breed.text.trim().isEmpty ? 'Pet' : breed.text.trim(),
+                      emoji,
+                      int.tryParse(age.text) ?? 1,
+                    ),
+                  );
+                });
+                Navigator.pop(dialogContext);
+                message('Pet added successfully');
+              },
+              child: const Text('Add pet'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  void addReminder() {
-    final titleController = TextEditingController();
-    final petController = TextEditingController(
+  void addTask() {
+    final title = TextEditingController();
+    final pet = TextEditingController(
       text: pets.isNotEmpty ? pets.first.name : '',
     );
 
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: cream,
         title: const Text('New reminder'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
-              controller: titleController,
+              controller: title,
               decoration: const InputDecoration(
-                labelText: 'Reminder',
-                hintText: 'e.g. Give medicine',
+                labelText: 'Reminder title',
+                hintText: 'Give medicine',
               ),
             ),
             TextField(
-              controller: petController,
-              decoration: const InputDecoration(
-                labelText: 'Pet name',
-              ),
+              controller: pet,
+              decoration: const InputDecoration(labelText: 'Pet name'),
             ),
           ],
         ),
@@ -230,20 +184,12 @@ class _MainScreenState extends State<MainScreen> {
           ),
           FilledButton(
             onPressed: () {
-              if (titleController.text.trim().isEmpty) return;
-
+              if (title.text.trim().isEmpty) return;
               setState(() {
-                reminders.add({
-                  'title': titleController.text.trim(),
-                  'subtitle':
-                      '${petController.text.trim()} · Today',
-                  'icon': Icons.notifications_active_rounded,
-                  'done': false,
-                });
+                tasks.add(CareTask(title.text.trim(), pet.text.trim(), 'Today'));
               });
-
               Navigator.pop(dialogContext);
-              showMessage('Reminder added');
+              message('Reminder added');
             },
             child: const Text('Save'),
           ),
@@ -255,88 +201,71 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     final pages = [
-      buildHome(),
-      buildPets(),
-      buildHealth(),
-      buildReminders(),
-      buildProfile(),
+      homePage(),
+      petsPage(),
+      healthPage(),
+      remindersPage(),
+      profilePage(),
     ];
 
     return Scaffold(
       body: SafeArea(
         bottom: false,
-        child: IndexedStack(
-          index: selectedTab,
-          children: pages,
-        ),
+        child: IndexedStack(index: tab, children: pages),
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.96),
-          border: Border(
-            top: BorderSide(color: Colors.black.withValues(alpha: 0.05)),
+      bottomNavigationBar: NavigationBar(
+        height: 72,
+        selectedIndex: tab,
+        backgroundColor: Colors.white,
+        indicatorColor: mint,
+        onDestinationSelected: (i) => setState(() => tab = i),
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home_rounded),
+            label: 'Home',
           ),
-        ),
-        child: NavigationBar(
-          selectedIndex: selectedTab,
-          backgroundColor: Colors.transparent,
-          indicatorColor: mint,
-          height: 72,
-          onDestinationSelected: (index) {
-            setState(() => selectedTab = index);
-          },
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home_rounded),
-              label: 'Home',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.pets_outlined),
-              selectedIcon: Icon(Icons.pets_rounded),
-              label: 'Pets',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.favorite_border_rounded),
-              selectedIcon: Icon(Icons.favorite_rounded),
-              label: 'Health',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.calendar_month_outlined),
-              selectedIcon: Icon(Icons.calendar_month_rounded),
-              label: 'Reminders',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.person_outline_rounded),
-              selectedIcon: Icon(Icons.person_rounded),
-              label: 'Profile',
-            ),
-          ],
-        ),
+          NavigationDestination(
+            icon: Icon(Icons.pets_outlined),
+            selectedIcon: Icon(Icons.pets_rounded),
+            label: 'My Pets',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.favorite_border),
+            selectedIcon: Icon(Icons.favorite),
+            label: 'Health',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.calendar_month_outlined),
+            selectedIcon: Icon(Icons.calendar_month),
+            label: 'Reminders',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
       ),
     );
   }
 
-  Widget buildHome() {
-    final pending = reminders.where((r) => r['done'] != true).length;
+  Widget homePage() {
+    final pending = tasks.where((t) => !t.done).length;
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(22, 18, 22, 30),
+      padding: const EdgeInsets.fromLTRB(21, 18, 21, 30),
       children: [
         Row(
           children: [
             Container(
-              height: 48,
-              width: 48,
+              height: 47,
+              width: 47,
               decoration: BoxDecoration(
                 color: mint,
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: const Icon(
-                Icons.pets_rounded,
-                color: ink,
-                size: 27,
-              ),
+              child: const Icon(Icons.pets, color: ink, size: 27),
             ),
             const SizedBox(width: 12),
             const Expanded(
@@ -346,10 +275,10 @@ class _MainScreenState extends State<MainScreen> {
                   Text(
                     'PETCARE',
                     style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 2.1,
-                      fontSize: 17,
                       color: ink,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 2,
                     ),
                   ),
                   Text(
@@ -360,20 +289,14 @@ class _MainScreenState extends State<MainScreen> {
               ),
             ),
             IconButton.filledTonal(
-              onPressed: () => setState(() => selectedTab = 4),
-              icon: const Icon(Icons.person_outline_rounded),
+              onPressed: () => setState(() => tab = 4),
+              icon: const Icon(Icons.person_outline),
             ),
           ],
         ),
         const SizedBox(height: 30),
-        const Text(
-          'Good day!',
-          style: TextStyle(
-            color: muted,
-            fontSize: 15,
-          ),
-        ),
-        const SizedBox(height: 4),
+        const Text('GOOD DAY!', style: TextStyle(color: muted, fontSize: 13)),
+        const SizedBox(height: 5),
         const Text(
           'Your pets, your priority.',
           style: TextStyle(
@@ -383,238 +306,189 @@ class _MainScreenState extends State<MainScreen> {
             letterSpacing: -0.8,
           ),
         ),
-        const SizedBox(height: 22),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(28),
-          child: Stack(
+        const SizedBox(height: 21),
+        Container(
+          padding: const EdgeInsets.all(23),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF204B3B), Color(0xFF599579)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(28),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(22),
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF244D40), Color(0xFF528C73)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+              const Row(
+                children: [
+                  Icon(Icons.favorite, color: mint, size: 17),
+                  SizedBox(width: 7),
+                  Text(
+                    'YOUR PET FAMILY',
+                    style: TextStyle(
+                      color: mint,
+                      fontSize: 11,
+                      letterSpacing: 1.4,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Row(
-                      children: [
-                        Icon(
-                          Icons.favorite_rounded,
-                          color: mint,
-                          size: 17,
-                        ),
-                        SizedBox(width: 7),
-                        Text(
-                          'YOUR PET FAMILY',
-                          style: TextStyle(
-                            color: mint,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.4,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      '${pets.length} furry friends',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 27,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    const Text(
-                      'Make every moment count.',
-                      style: TextStyle(
-                        color: Color(0xFFDCECE3),
-                        fontSize: 13,
-                      ),
-                    ),
-                    const SizedBox(height: 22),
-                    Row(
-                      children: [
-                        OutlinedButton.icon(
-                          onPressed: addPet,
-                          icon: const Icon(Icons.add, size: 18),
-                          label: const Text('Add a pet'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            side: const BorderSide(color: Colors.white54),
-                          ),
-                        ),
-                        const Spacer(),
-                        const Text('🐕 🐈', style: TextStyle(fontSize: 30)),
-                      ],
-                    ),
-                  ],
+                ],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                '${pets.length} furry friends',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 27,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-              Positioned(
-                top: -45,
-                right: -45,
-                child: Container(
-                  width: 145,
-                  height: 145,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withValues(alpha: 0.06),
+              const SizedBox(height: 5),
+              const Text(
+                'Make every moment count.',
+                style: TextStyle(color: Colors.white70),
+              ),
+              const SizedBox(height: 19),
+              Row(
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: addPet,
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text('Add a pet'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      side: const BorderSide(color: Colors.white60),
+                    ),
                   ),
-                ),
+                  const Spacer(),
+                  const Text('🐕 🐈', style: TextStyle(fontSize: 29)),
+                ],
               ),
             ],
           ),
         ),
-        const SizedBox(height: 25),
+        const SizedBox(height: 22),
         Row(
           children: [
             Expanded(
               child: statCard(
-                icon: Icons.pets_rounded,
-                title: 'My pets',
-                value: '${pets.length}',
-                subtitle: 'In your family',
-                color: const Color(0xFFE1F1E8),
-                onTap: () => setState(() => selectedTab = 1),
+                'My pets',
+                '${pets.length}',
+                'Your companions',
+                Icons.pets,
+                const Color(0xFFE2F1E7),
+                () => setState(() => tab = 1),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: statCard(
-                icon: Icons.notifications_active_rounded,
-                title: 'Reminders',
-                value: '$pending',
-                subtitle: 'Pending tasks',
-                color: const Color(0xFFFFEAD5),
-                onTap: () => setState(() => selectedTab = 3),
+                'Reminders',
+                '$pending',
+                'Tasks pending',
+                Icons.notifications_active_outlined,
+                const Color(0xFFFFEBD7),
+                () => setState(() => tab = 3),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 29),
-        sectionHeading(
+        const SizedBox(height: 27),
+        sectionTitle(
           'Your companions',
           'VIEW ALL',
-          () => setState(() => selectedTab = 1),
+          () => setState(() => tab = 1),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 13),
         SizedBox(
-          height: 164,
+          height: 155,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: pets.length,
             separatorBuilder: (_, __) => const SizedBox(width: 12),
-            itemBuilder: (context, index) {
-              final pet = pets[index];
-              return GestureDetector(
-                onTap: () => setState(() => selectedTab = 1),
-                child: Container(
-                  width: 150,
-                  padding: const EdgeInsets.all(15),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(23),
-                    border: Border.all(color: const Color(0xFFE6ECE7)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(pet.emoji, style: const TextStyle(fontSize: 37)),
-                      const Spacer(),
-                      Text(
-                        pet.name,
-                        style: const TextStyle(
-                          color: ink,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
+            itemBuilder: (context, i) {
+              final p = pets[i];
+              return Container(
+                width: 148,
+                padding: const EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(23),
+                  border: Border.all(color: const Color(0xFFE7ECE7)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(p.emoji, style: const TextStyle(fontSize: 37)),
+                    const Spacer(),
+                    Text(
+                      p.name,
+                      style: const TextStyle(
+                        color: ink,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
                       ),
-                      Text(
-                        pet.breed,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: muted, fontSize: 11),
-                      ),
-                    ],
-                  ),
+                    ),
+                    Text(
+                      p.breed,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(color: muted, fontSize: 11),
+                    ),
+                  ],
                 ),
               );
             },
           ),
         ),
-        const SizedBox(height: 28),
-        sectionHeading(
+        const SizedBox(height: 25),
+        sectionTitle(
           "Today's care",
           'SEE ALL',
-          () => setState(() => selectedTab = 3),
+          () => setState(() => tab = 3),
         ),
-        const SizedBox(height: 13),
-        ...reminders.take(3).map((item) => reminderTile(item)),
-        const SizedBox(height: 18),
-        GestureDetector(
-          onTap: () => showMessage(
-            'Clinic search will be added in the next update.',
+        const SizedBox(height: 10),
+        ...tasks.take(3).map(taskTile),
+        const SizedBox(height: 12),
+        ListTile(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
           ),
-          child: Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: const Color(0xFFE5EFE8),
-              borderRadius: BorderRadius.circular(22),
-            ),
-            child: const Row(
-              children: [
-                Icon(Icons.location_on_outlined, color: ink, size: 29),
-                SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Find a vet near you',
-                        style: TextStyle(
-                          color: ink,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'Discover nearby pet clinics',
-                        style: TextStyle(color: muted, fontSize: 12),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(Icons.arrow_forward_ios_rounded, size: 16),
-              ],
-            ),
+          tileColor: mint,
+          leading: const Icon(Icons.location_on_outlined, color: ink, size: 29),
+          title: const Text(
+            'Find a vet near you',
+            style: TextStyle(fontWeight: FontWeight.bold, color: ink),
           ),
+          subtitle: const Text(
+            'Nearby clinic finder coming soon',
+            style: TextStyle(color: muted, fontSize: 12),
+          ),
+          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+          onTap: () => message('Clinic search will be added next.'),
         ),
       ],
     );
   }
 
-  Widget statCard({
-    required IconData icon,
-    required String title,
-    required String value,
-    required String subtitle,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
+  Widget statCard(
+    String title,
+    String value,
+    String subtitle,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(22),
       child: Container(
-        padding: const EdgeInsets.all(17),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(23),
-          border: Border.all(color: const Color(0xFFE8EDE8)),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: const Color(0xFFE7ECE7)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -628,7 +502,7 @@ class _MainScreenState extends State<MainScreen> {
               ),
               child: Icon(icon, color: ink),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 12),
             Text(
               value,
               style: const TextStyle(
@@ -655,11 +529,7 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  Widget sectionHeading(
-    String title,
-    String action,
-    VoidCallback onTap,
-  ) {
+  Widget sectionTitle(String title, String action, VoidCallback onTap) {
     return Row(
       children: [
         Expanded(
@@ -667,8 +537,8 @@ class _MainScreenState extends State<MainScreen> {
             title,
             style: const TextStyle(
               color: ink,
-              fontWeight: FontWeight.w800,
               fontSize: 19,
+              fontWeight: FontWeight.w800,
             ),
           ),
         ),
@@ -677,9 +547,9 @@ class _MainScreenState extends State<MainScreen> {
           child: Text(
             action,
             style: const TextStyle(
-              color: Color(0xFF39866C),
-              fontSize: 11,
+              color: green,
               fontWeight: FontWeight.bold,
+              fontSize: 11,
             ),
           ),
         ),
@@ -687,29 +557,28 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  Widget reminderTile(Map<String, dynamic> item) {
-    final bool done = item['done'] == true;
-
+  Widget taskTile(CareTask task) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(13),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(19),
-        border: Border.all(color: const Color(0xFFE8EDE8)),
+        border: Border.all(color: const Color(0xFFE7ECE7)),
       ),
       child: Row(
         children: [
           Container(
-            height: 43,
-            width: 43,
+            height: 42,
+            width: 42,
             decoration: BoxDecoration(
-              color: done
-                  ? const Color(0xFFE3F2E8)
-                  : const Color(0xFFFFEEDB),
-              borderRadius: BorderRadius.circular(14),
+              color: task.done ? mint : const Color(0xFFFFEBD7),
+              borderRadius: BorderRadius.circular(13),
             ),
-            child: Icon(item['icon'] as IconData, color: ink, size: 21),
+            child: Icon(
+              task.done ? Icons.check_circle_outline : Icons.pets,
+              color: ink,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -717,97 +586,115 @@ class _MainScreenState extends State<MainScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item['title'] as String,
+                  task.title,
                   style: TextStyle(
                     color: ink,
                     fontWeight: FontWeight.bold,
-                    decoration: done ? TextDecoration.lineThrough : null,
+                    decoration: task.done ? TextDecoration.lineThrough : null,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  item['subtitle'] as String,
+                  '${task.pet} · ${task.time}',
                   style: const TextStyle(color: muted, fontSize: 11),
                 ),
               ],
             ),
           ),
           Checkbox(
-            value: done,
-            activeColor: const Color(0xFF39866C),
-            onChanged: (value) {
-              setState(() => item['done'] = value ?? false);
-            },
+            value: task.done,
+            activeColor: green,
+            onChanged: (v) => setState(() => task.done = v ?? false),
           ),
         ],
       ),
     );
   }
 
-  Widget buildPets() {
+  Widget header(String title, String subtitle) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'PETCARE',
+          style: TextStyle(
+            color: green,
+            fontSize: 12,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 2,
+          ),
+        ),
+        const SizedBox(height: 9),
+        Text(
+          title,
+          style: const TextStyle(
+            color: ink,
+            fontSize: 29,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: 5),
+        Text(subtitle, style: const TextStyle(color: muted)),
+      ],
+    );
+  }
+
+  Widget petsPage() {
     return ListView(
       padding: const EdgeInsets.all(22),
       children: [
-        pageHeader('My pets', 'Your lovely companions'),
-        const SizedBox(height: 20),
+        header('My pets', 'Your lovely companions'),
+        const SizedBox(height: 23),
         ...pets.asMap().entries.map((entry) {
-          final pet = entry.value;
+          final i = entry.key;
+          final p = entry.value;
           return Container(
-            margin: const EdgeInsets.only(bottom: 14),
-            padding: const EdgeInsets.all(18),
+            margin: const EdgeInsets.only(bottom: 13),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: const Color(0xFFE4EBE5)),
+              borderRadius: BorderRadius.circular(23),
+              border: Border.all(color: const Color(0xFFE7ECE7)),
             ),
             child: Row(
               children: [
                 Container(
-                  height: 76,
-                  width: 76,
+                  height: 72,
+                  width: 72,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: mint.withValues(alpha: 0.55),
-                    borderRadius: BorderRadius.circular(21),
+                    color: mint,
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Text(pet.emoji, style: const TextStyle(fontSize: 39)),
+                  child: Text(p.emoji, style: const TextStyle(fontSize: 37)),
                 ),
-                const SizedBox(width: 15),
+                const SizedBox(width: 13),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        pet.name,
+                        p.name,
                         style: const TextStyle(
-                          fontSize: 19,
-                          fontWeight: FontWeight.bold,
                           color: ink,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 5),
-                      Text(pet.breed, style: const TextStyle(color: muted)),
-                      const SizedBox(height: 5),
+                      Text(p.breed, style: const TextStyle(color: muted)),
                       Text(
-                        '${pet.age} ${pet.age == 1 ? 'year' : 'years'} old',
-                        style: const TextStyle(
-                          color: Color(0xFF39866C),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        '${p.age} years old',
+                        style: const TextStyle(color: green, fontSize: 12),
                       ),
                     ],
                   ),
                 ),
                 IconButton(
                   onPressed: () {
-                    setState(() => pets.removeAt(entry.key));
-                    showMessage('${pet.name} removed');
+                    setState(() => pets.removeAt(i));
+                    message('Pet removed');
                   },
-                  icon: const Icon(
-                    Icons.delete_outline_rounded,
-                    color: Colors.redAccent,
-                  ),
+                  icon: const Icon(Icons.delete_outline, color: Colors.red),
                 ),
               ],
             ),
@@ -819,154 +706,143 @@ class _MainScreenState extends State<MainScreen> {
           icon: const Icon(Icons.add),
           label: const Text('Add new pet'),
           style: FilledButton.styleFrom(
-            minimumSize: const Size.fromHeight(53),
+            minimumSize: const Size.fromHeight(52),
           ),
         ),
       ],
     );
   }
 
-  Widget buildHealth() {
+  Widget healthPage() {
     return ListView(
       padding: const EdgeInsets.all(22),
       children: [
-        pageHeader('Health tracker', 'Keep your pets healthy'),
-        const SizedBox(height: 22),
+        header('Health tracker', 'A healthy pet is a happy pet'),
+        const SizedBox(height: 23),
         Container(
           padding: const EdgeInsets.all(22),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [Color(0xFF214C3E), Color(0xFF568E75)],
+              colors: [Color(0xFF204B3B), Color(0xFF599579)],
             ),
-            borderRadius: BorderRadius.circular(26),
+            borderRadius: BorderRadius.circular(25),
           ),
           child: const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.health_and_safety_rounded, color: mint, size: 35),
-              SizedBox(height: 14),
+              Icon(Icons.health_and_safety, color: mint, size: 37),
+              SizedBox(height: 15),
               Text(
-                'Healthy pets, happy hearts.',
+                'Their health matters.',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 22,
+                  fontSize: 23,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               SizedBox(height: 8),
               Text(
-                'Keep vaccination records, medicines and vet visits organised.',
-                style: TextStyle(color: Color(0xFFDCECE3), height: 1.5),
+                'Keep track of vaccination, medicines and vet visits in one place.',
+                style: TextStyle(color: Colors.white70, height: 1.5),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 25),
+        const SizedBox(height: 24),
         const Text(
-          'Pet health overview',
+          'Health overview',
           style: TextStyle(
             color: ink,
-            fontWeight: FontWeight.bold,
             fontSize: 19,
+            fontWeight: FontWeight.bold,
           ),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 13),
         ...pets.map(
-          (pet) => Container(
+          (p) => Container(
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(17),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(21),
+              borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
               children: [
-                Text(pet.emoji, style: const TextStyle(fontSize: 31)),
+                Text(p.emoji, style: const TextStyle(fontSize: 30)),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        pet.name,
+                        p.name,
                         style: const TextStyle(
-                          fontWeight: FontWeight.bold,
                           color: ink,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 4),
                       const Text(
-                        'No health records added yet',
+                        'No health records added',
                         style: TextStyle(color: muted, fontSize: 12),
                       ),
                     ],
                   ),
                 ),
                 IconButton(
-                  onPressed: () => showMessage(
-                    'Health record form will be added next.',
-                  ),
-                  icon: const Icon(
-                    Icons.add_circle_outline_rounded,
-                    color: Color(0xFF39866C),
-                  ),
+                  onPressed: () => message('Health records feature coming next.'),
+                  icon: const Icon(Icons.add_circle_outline, color: green),
                 ),
               ],
             ),
           ),
         ),
-        const SizedBox(height: 12),
         const Text(
-          'Health records are not yet saved permanently.',
+          'Health records are not saved permanently in this version.',
           style: TextStyle(color: muted, fontSize: 12),
         ),
       ],
     );
   }
 
-  Widget buildReminders() {
+  Widget remindersPage() {
     return ListView(
       padding: const EdgeInsets.all(22),
       children: [
-        pageHeader('Reminders', 'Every little thing matters'),
+        header('Reminders', 'Every little thing matters'),
         const SizedBox(height: 22),
         Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(21),
           decoration: BoxDecoration(
-            color: const Color(0xFFE1F1E8),
+            color: mint,
             borderRadius: BorderRadius.circular(24),
           ),
-          child: Row(
+          child: const Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       'Stay on track',
                       style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 21,
                         color: ink,
+                        fontSize: 21,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                     SizedBox(height: 6),
                     Text(
-                      'Keep your pet care routine organised.',
-                      style: TextStyle(color: muted, fontSize: 12),
+                      'Organise your daily pet care.',
+                      style: TextStyle(color: muted),
                     ),
                   ],
                 ),
               ),
-              const Icon(
-                Icons.event_available_rounded,
-                size: 48,
-                color: Color(0xFF39866C),
-              ),
+              Icon(Icons.event_available, color: green, size: 44),
             ],
           ),
         ),
-        const SizedBox(height: 22),
+        const SizedBox(height: 24),
         Row(
           children: [
             const Expanded(
@@ -980,60 +856,60 @@ class _MainScreenState extends State<MainScreen> {
               ),
             ),
             Text(
-              '${reminders.where((r) => r['done'] == true).length}/${reminders.length} done',
+              '${tasks.where((t) => t.done).length}/${tasks.length} done',
               style: const TextStyle(
-                color: Color(0xFF39866C),
+                color: green,
                 fontWeight: FontWeight.bold,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 15),
-        ...reminders.map((item) => reminderTile(item)),
+        const SizedBox(height: 13),
+        ...tasks.map(taskTile),
         const SizedBox(height: 12),
         FilledButton.icon(
-          onPressed: addReminder,
+          onPressed: addTask,
           icon: const Icon(Icons.add),
           label: const Text('Add reminder'),
           style: FilledButton.styleFrom(
-            minimumSize: const Size.fromHeight(53),
+            minimumSize: const Size.fromHeight(52),
           ),
         ),
-        const SizedBox(height: 15),
+        const SizedBox(height: 16),
         const Text(
-          'Demo reminders only. Scheduled notifications will be integrated separately.',
+          'These are demo reminders. Scheduled notifications are not enabled yet.',
           style: TextStyle(color: muted, fontSize: 12),
         ),
       ],
     );
   }
 
-  Widget buildProfile() {
+  Widget profilePage() {
     return ListView(
       padding: const EdgeInsets.all(22),
       children: [
-        pageHeader('Your profile', 'Manage your PetCare experience'),
-        const SizedBox(height: 25),
+        header('Your profile', 'Your PetCare experience'),
+        const SizedBox(height: 23),
         Container(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(25),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(26),
+            borderRadius: BorderRadius.circular(25),
           ),
           child: const Column(
             children: [
               CircleAvatar(
-                radius: 42,
+                radius: 41,
                 backgroundColor: mint,
-                child: Icon(Icons.person_rounded, size: 46, color: ink),
+                child: Icon(Icons.person, size: 46, color: ink),
               ),
-              SizedBox(height: 14),
+              SizedBox(height: 13),
               Text(
                 'Pet parent',
                 style: TextStyle(
                   color: ink,
-                  fontWeight: FontWeight.bold,
                   fontSize: 21,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
               SizedBox(height: 5),
@@ -1044,83 +920,54 @@ class _MainScreenState extends State<MainScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 22),
-        profileItem(
-          Icons.pets_rounded,
+        const SizedBox(height: 20),
+        profileRow(
+          Icons.pets,
           'My pets',
           'Manage your companions',
-          () => setState(() => selectedTab = 1),
+          () => setState(() => tab = 1),
         ),
-        profileItem(
+        profileRow(
           Icons.notifications_outlined,
           'Reminders',
           'Manage care tasks',
-          () => setState(() => selectedTab = 3),
+          () => setState(() => tab = 3),
         ),
-        profileItem(
+        profileRow(
           Icons.location_on_outlined,
           'Nearby clinics',
-          'Clinic finder coming soon',
-          () => showMessage('Clinic finder is not connected yet.'),
+          'Coming soon',
+          () => message('Clinic finder coming soon'),
         ),
-        profileItem(
+        profileRow(
           Icons.privacy_tip_outlined,
           'Privacy',
-          'Your data stays on this demo screen',
-          () => showMessage('Local demo only; cloud sync is not configured.'),
+          'Demo version',
+          () => message('Cloud sync is not configured yet'),
         ),
-        profileItem(
-          Icons.info_outline_rounded,
+        profileRow(
+          Icons.info_outline,
           'About PetCare',
           'Version 1.0.0',
-          () => showMessage('PetCare version 1.0.0'),
+          () => message('PetCare version 1.0.0'),
         ),
       ],
     );
   }
 
-  Widget pageHeader(String title, String subtitle) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'PETCARE',
-          style: TextStyle(
-            color: Color(0xFF39866C),
-            fontWeight: FontWeight.w900,
-            fontSize: 12,
-            letterSpacing: 2,
-          ),
-        ),
-        const SizedBox(height: 9),
-        Text(
-          title,
-          style: const TextStyle(
-            color: ink,
-            fontSize: 29,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.8,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(subtitle, style: const TextStyle(color: muted)),
-      ],
-    );
-  }
-
-  Widget profileItem(
+  Widget profileRow(
     IconData icon,
     String title,
     String subtitle,
     VoidCallback onTap,
   ) {
     return ListTile(
-      contentPadding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+      contentPadding: const EdgeInsets.symmetric(vertical: 5, horizontal: 4),
       leading: Container(
-        height: 44,
-        width: 44,
+        height: 43,
+        width: 43,
         decoration: BoxDecoration(
-          color: const Color(0xFFE1F1E8),
+          color: mint,
           borderRadius: BorderRadius.circular(14),
         ),
         child: Icon(icon, color: ink),
@@ -1128,17 +975,16 @@ class _MainScreenState extends State<MainScreen> {
       title: Text(
         title,
         style: const TextStyle(
-          fontWeight: FontWeight.bold,
           color: ink,
+          fontWeight: FontWeight.bold,
         ),
       ),
       subtitle: Text(
         subtitle,
-        style: const TextStyle(fontSize: 12, color: muted),
+        style: const TextStyle(color: muted, fontSize: 12),
       ),
-      trailing: const Icon(Icons.chevron_right_rounded, color: muted),
+      trailing: const Icon(Icons.chevron_right, color: muted),
       onTap: onTap,
     );
   }
 }
-
