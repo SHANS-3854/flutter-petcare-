@@ -36,8 +36,8 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Remove outdated default tests
-        run: rm -rf test
+      - name: Remove stale test file
+        run: rm -f test/widget_test.dart
 
       - name: Analyze Dart code
         run: flutter analyze
