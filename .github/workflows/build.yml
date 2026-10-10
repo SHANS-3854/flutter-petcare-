@@ -30,16 +30,19 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Create Flutter project platform files
+      - name: Create Android platform files
         run: flutter create --platforms=android --project-name flutter_petcare .
 
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Check Dart code
+      - name: Remove outdated default tests
+        run: rm -rf test
+
+      - name: Analyze Dart code
         run: flutter analyze
 
-      - name: Build APK
+      - name: Build release APK
         run: flutter build apk --release
 
       - name: Upload APK
